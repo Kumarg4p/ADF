@@ -1,0 +1,18 @@
+{
+	"$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+	"contentVersion": "1.0.0.0",
+	"parameters": {
+		"factoryName": {
+			"value": "kg-covid-reporting-adf"
+		},
+		"ls_ablob_covidreportingsa_connectionString": {
+			"value": ""
+		},
+		"ls_adla_covidreportingdl_accountKey": {
+			"value": ""
+		},
+		"ls_adla_covidreportingdl_properties_typeProperties_url": {
+			"value": "https://kgcovidreportadls.dfs.core.windows.net"
+		}
+	}
+}
