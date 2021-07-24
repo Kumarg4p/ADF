@@ -49,13 +49,13 @@
 				},
 				"inputs": [
 					{
-						"referenceName": "ds_cases_death_raw_csv",
+						"referenceName": "ds_hospital_admission_raw",
 						"type": "DatasetReference"
 					}
 				],
 				"outputs": [
 					{
-						"referenceName": "ds_cases_death_raw_csv_Data",
+						"referenceName": "ds_hospital_admission_csv",
 						"type": "DatasetReference"
 					}
 				]
