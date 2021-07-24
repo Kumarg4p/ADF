@@ -1,7 +1,0 @@
-{
-	"name": "pl_ingest_cases_deaths_Data",
-	"properties": {
-		"concurrency": 1,
-		"annotations": []
-	}
-}
