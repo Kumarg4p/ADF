@@ -18,6 +18,10 @@
 		"ls_adla_covidreportingdl_properties_typeProperties_url": {
 			"type": "string",
 			"defaultValue": "https://kgcovidreportadls.dfs.core.windows.net"
+		},
+		"tr_ingest_population_data_properties_typeProperties_scope": {
+			"type": "string",
+			"defaultValue": "/subscriptions/b0136f89-45a0-4a3a-ab93-665cc93d5040/resourceGroups/FishersTigers/providers/Microsoft.Storage/storageAccounts/kgcovidreporting"
 		}
 	},
 	"variables": {
@@ -120,74 +124,6 @@
 			"properties": {
 				"activities": [
 					{
-						"name": "Copy population data",
-						"description": "copying population data to ADLS",
-						"type": "Copy",
-						"dependsOn": [
-							{
-								"activity": "check if file exists",
-								"dependencyConditions": [
-									"Succeeded"
-								]
-							}
-						],
-						"policy": {
-							"timeout": "0.00:05:00",
-							"retry": 0,
-							"retryIntervalInSeconds": 30,
-							"secureOutput": false,
-							"secureInput": false
-						},
-						"userProperties": [],
-						"typeProperties": {
-							"source": {
-								"type": "DelimitedTextSource",
-								"storeSettings": {
-									"type": "AzureBlobStorageReadSettings",
-									"recursive": true,
-									"enablePartitionDiscovery": false
-								},
-								"formatSettings": {
-									"type": "DelimitedTextReadSettings"
-								}
-							},
-							"sink": {
-								"type": "DelimitedTextSink",
-								"storeSettings": {
-									"type": "AzureBlobFSWriteSettings"
-								},
-								"formatSettings": {
-									"type": "DelimitedTextWriteSettings",
-									"quoteAllText": true,
-									"fileExtension": ".txt"
-								}
-							},
-							"enableStaging": false,
-							"translator": {
-								"type": "TabularTranslator",
-								"typeConversion": true,
-								"typeConversionSettings": {
-									"allowDataTruncation": true,
-									"treatBooleanAsNumber": false
-								}
-							}
-						},
-						"inputs": [
-							{
-								"referenceName": "ds_population_raw_gz",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						],
-						"outputs": [
-							{
-								"referenceName": "ds_population_raw_tsv",
-								"type": "DatasetReference",
-								"parameters": {}
-							}
-						]
-					},
-					{
 						"name": "check if file exists",
 						"type": "Validation",
 						"dependsOn": [],
@@ -198,9 +134,185 @@
 								"type": "DatasetReference",
 								"parameters": {}
 							},
-							"timeout": "0.00:30:00",
+							"timeout": "0.00:00:30",
 							"sleep": 10,
 							"minimumSize": 1024
+						}
+					},
+					{
+						"name": "Get File Metadata",
+						"type": "GetMetadata",
+						"dependsOn": [
+							{
+								"activity": "check if file exists",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"policy": {
+							"timeout": "7.00:00:00",
+							"retry": 0,
+							"retryIntervalInSeconds": 30,
+							"secureOutput": false,
+							"secureInput": false
+						},
+						"userProperties": [],
+						"typeProperties": {
+							"dataset": {
+								"referenceName": "ds_population_raw_gz",
+								"type": "DatasetReference",
+								"parameters": {}
+							},
+							"fieldList": [
+								"columnCount",
+								"size",
+								"exists"
+							],
+							"storeSettings": {
+								"type": "AzureBlobStorageReadSettings",
+								"recursive": true,
+								"enablePartitionDiscovery": false
+							},
+							"formatSettings": {
+								"type": "DelimitedTextReadSettings"
+							}
+						}
+					},
+					{
+						"name": "If Column count matches",
+						"type": "IfCondition",
+						"dependsOn": [
+							{
+								"activity": "Get File Metadata",
+								"dependencyConditions": [
+									"Succeeded"
+								]
+							}
+						],
+						"userProperties": [],
+						"typeProperties": {
+							"expression": {
+								"value": "@equals(activity('Get File Metadata').output.columnCount,13)",
+								"type": "Expression"
+							},
+							"ifFalseActivities": [
+								{
+									"name": "Send Email",
+									"type": "WebActivity",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"url": "https://file",
+										"method": "POST",
+										"headers": {},
+										"body": "dummy"
+									}
+								}
+							],
+							"ifTrueActivities": [
+								{
+									"name": "Copy population data_copy1",
+									"description": "copying population data to ADLS",
+									"type": "Copy",
+									"dependsOn": [],
+									"policy": {
+										"timeout": "0.00:05:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"source": {
+											"type": "DelimitedTextSource",
+											"storeSettings": {
+												"type": "AzureBlobStorageReadSettings",
+												"recursive": true,
+												"enablePartitionDiscovery": false
+											},
+											"formatSettings": {
+												"type": "DelimitedTextReadSettings"
+											}
+										},
+										"sink": {
+											"type": "DelimitedTextSink",
+											"storeSettings": {
+												"type": "AzureBlobFSWriteSettings"
+											},
+											"formatSettings": {
+												"type": "DelimitedTextWriteSettings",
+												"quoteAllText": true,
+												"fileExtension": ".txt"
+											}
+										},
+										"enableStaging": false,
+										"translator": {
+											"type": "TabularTranslator",
+											"typeConversion": true,
+											"typeConversionSettings": {
+												"allowDataTruncation": true,
+												"treatBooleanAsNumber": false
+											}
+										}
+									},
+									"inputs": [
+										{
+											"referenceName": "ds_population_raw_gz",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									],
+									"outputs": [
+										{
+											"referenceName": "ds_population_raw_tsv",
+											"type": "DatasetReference",
+											"parameters": {}
+										}
+									]
+								},
+								{
+									"name": "Delete Source File",
+									"type": "Delete",
+									"dependsOn": [
+										{
+											"activity": "Copy population data_copy1",
+											"dependencyConditions": [
+												"Succeeded"
+											]
+										}
+									],
+									"policy": {
+										"timeout": "7.00:00:00",
+										"retry": 0,
+										"retryIntervalInSeconds": 30,
+										"secureOutput": false,
+										"secureInput": false
+									},
+									"userProperties": [],
+									"typeProperties": {
+										"dataset": {
+											"referenceName": "ds_population_raw_gz",
+											"type": "DatasetReference",
+											"parameters": {}
+										},
+										"enableLogging": false,
+										"storeSettings": {
+											"type": "AzureBlobStorageReadSettings",
+											"recursive": false,
+											"enablePartitionDiscovery": false
+										}
+									}
+								}
+							]
 						}
 					}
 				],
@@ -209,6 +321,36 @@
 			"dependsOn": [
 				"[concat(variables('factoryId'), '/datasets/ds_population_raw_gz')]",
 				"[concat(variables('factoryId'), '/datasets/ds_population_raw_tsv')]"
+			]
+		},
+		{
+			"name": "[concat(parameters('factoryName'), '/tr_ingest_population_data')]",
+			"type": "Microsoft.DataFactory/factories/triggers",
+			"apiVersion": "2018-06-01",
+			"properties": {
+				"annotations": [],
+				"runtimeState": "Started",
+				"pipelines": [
+					{
+						"pipelineReference": {
+							"referenceName": "pl_ingest_population_data",
+							"type": "PipelineReference"
+						},
+						"parameters": {}
+					}
+				],
+				"type": "BlobEventsTrigger",
+				"typeProperties": {
+					"blobPathBeginsWith": "/populattion/blobs/population_by_age.tsv.gz",
+					"ignoreEmptyBlobs": true,
+					"scope": "[parameters('tr_ingest_population_data_properties_typeProperties_scope')]",
+					"events": [
+						"Microsoft.Storage.BlobCreated"
+					]
+				}
+			},
+			"dependsOn": [
+				"[concat(variables('factoryId'), '/pipelines/pl_ingest_population_data')]"
 			]
 		}
 	]

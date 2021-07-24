@@ -13,6 +13,9 @@
 		},
 		"ls_adla_covidreportingdl_properties_typeProperties_url": {
 			"value": "https://kgcovidreportadls.dfs.core.windows.net"
+		},
+		"tr_ingest_population_data_properties_typeProperties_scope": {
+			"value": "/subscriptions/b0136f89-45a0-4a3a-ab93-665cc93d5040/resourceGroups/FishersTigers/providers/Microsoft.Storage/storageAccounts/kgcovidreporting"
 		}
 	}
 }
