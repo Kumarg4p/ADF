@@ -1,5 +1,5 @@
 {
-	"name": "hospital_admission_raw",
+	"name": "ds_hospital_admission_raw",
 	"properties": {
 		"linkedServiceName": {
 			"referenceName": "ls_ablob_covidreportingsa",
